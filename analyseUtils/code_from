@@ -1,0 +1,99 @@
+﻿﻿
+Code R
+
+ Voici le code passé à R 
+library(FactoMineR)
+library(RSVGTipsDevice)
+library(ggplot2)
+source("/webhome/analyse/html/packages/plot.CA.SVG.R")
+source("/webhome/analyse/html/packages/Complement.R")
+source("/webhome/analyse/html/packages/pem.R")
+tableau<-read.csv("/webhome/analyse/html/documents/study1631029961/duchn.csv", header=TRUE, row.names=1, sep="\t",  na.strings="NA",  dec=".", strip.white=TRUE, blank.lines.skip=TRUE, encoding="UTF-8")
+namestbl<- gsub("([.]|[X]|[,])", "\ ", names(tableau))
+names(tableau)<-namestbl
+AFC<-tableau
+AFC<-apply(AFC, 2, function(x) ifelse(is.na(x), 0, x))
+AFC<- t(AFC)
+tbl<-AFC
+tbl[,margin.table(t(tbl),1)!=0]
+tbl[margin.table(t(tbl),2)!=0,]
+AFC<-tbl
+AFC.ca <- CA(AFC, ncp=7, graph=FALSE)
+devSVGTips(file = "AFC_1et_2_au_Seuil_de_contribution_00.svg", toolTipMode=1, width = 10, height = 8, bg = "white", fg ="black", toolTipFontSize=8, onefile=TRUE)
+plot.CA(AFC.ca, axes=c(1,2), SeuilCol=0, SeuilLigne=0, Pem=c(0,0),  AFC, col.row="red", col.col="blue", col.row.sup = "#ec6804", col.col.sup = "#00d1ff", label=c("col", "col.sup", "row", "row.sup"),  title="")
+dev.off()
+choixcolor<- function(var, var1="", var2="", col1="",  col2="")
+{
+couleur=var
+for(i in 1:length(var))
+{
+if(i==var1 || i==var2)
+{couleur[i]="black"}
+else
+{couleur[i]="white"}
+}
+return(couleur)
+}
+chxcolor<-choixcolor(AFC.ca$eig[,1], var1=1, var2=2, col1="red",  col2="black")
+library(RSVGTipsDevice)
+devSVGTips(file = "description_des_facteurs.svg", toolTipMode=1, width = 10, height = 8, bg = "white", fg ="black", toolTipFontSize=8, onefile=TRUE)
+barplot(AFC.ca$eig[,1], col=chxcolor)
+dev.off()
+tt<-data.frame(round(AFC.ca$eig,6))
+tab.facteurs= data.frame(sapply(tt[1], function(x) (x)), tt[2],tt[3])
+colnames(tab.facteurs)<-c("Valeur propre","% exprimé ", "% cumulé ")
+write.infile(tab.facteurs, file="tab_facteurs.csv", sep = ";")
+library(xtable)
+tab.facteursLatex<-xtable(tab.facteurs, caption="Décroissance des facteurs")
+print(tab.facteursLatex, file="tab_facteurs.tex", booktabs = TRUE)
+# MergeCoordContrib ; fonction dans fichier complement.R situé dans le répertoire packages
+X.lgn<-MergeCoordContrib(AFC.ca$col$coord,AFC.ca$col$contrib, 5)
+X.col<-MergeCoordContrib(AFC.ca$row$coord,AFC.ca$row$contrib, 5)
+write.table(X.lgn, file="AFCtab_lgn_facteurs.csv", col.names=FALSE, sep = ";")
+write.table(X.col, file="AFCtab_col_facteurs.csv", col.names=FALSE, sep = ";")
+coord.var.facteurs<-AFC.ca$row$coord
+coord.ind.facteurs<-AFC.ca$col$coord
+LateX.lgn<-xtable(X.lgn, caption = "Résultats pour l'ensemble des facteurs")
+print(LateX.lgn, file="AFCtab_lgn_facteurs.tex", tabular.environment = "longtable")
+LateX.col<-xtable(X.col, caption = "Résultats pour l'ensemble des facteurs")
+print(LateX.col, file="AFCtab_col_facteurs.tex", tabular.environment = "longtable")
+myrownames<-paste("xC",rownames(coord.var.facteurs), sep="")
+mycolnames<-colnames(coord.var.facteurs)
+coord.var.facteurs<-matrix(coord.var.facteurs[1:length(coord.var.facteurs)], ncol=ncol(coord.var.facteurs))
+rownames(coord.var.facteurs) <- as.vector(myrownames)
+coord.to.Classification<-rbind(coord.ind.facteurs,coord.var.facteurs)
+write.infile(coord.to.Classification, file="coordAFCtoClassif.csv", sep = "\t")
+chi2<-chisq.test(AFC)
+chi2 <- chi2[1:3]
+phi<-as.numeric(levels(as.factor((chi2[[1]]))))/sum(AFC)
+chi2<-data.frame(chi2,phi)
+chi2<-as.list(chi2)
+nom<-c("Chi Pearson : ","degrés de liberté :","probabilité d'indépendance : ", "Phi-deux :")
+names(chi2)<-nom
+write.infile(chi2, file="chi2.csv", sep="	")
+tab.results<-data.frame(AFC.ca$col$cos2)
+x <- list()
+for (i in 1:ncol(AFC.ca$col$cos2))
+{
+tab.results[,i] <- data.frame(AFC.ca$col$cos2[, i])
+x[i] <- paste("facteur"[i])
+}
+tab.results<-round((tab.results),3)
+colnames(tab.results)<- c(x)
+write.infile(tab.results, file="AFCtab_cos2_lgn.csv", sep = ";")
+library(xtable)
+Latex<-xtable(tab.results, caption = "Cos2 pour l'ensemble des facteurs")
+print(Latex, file="AFCtab_cos2_lgn.tex", tabular.environment = "longtable")
+tab.results<-data.frame(AFC.ca$row$cos2)
+x <- list()
+for (i in 1:ncol(AFC.ca$row$cos2))
+{
+tab.results[,i] <- data.frame(AFC.ca$row$cos2[, i])
+x[i] <- paste("facteur"[i])
+}
+tab.results<-round((tab.results),3)
+colnames(tab.results)<- c(x)
+write.infile(tab.results, file="AFCtab_cos2_col.csv", sep = ";")
+library(xtable)
+Latex<-xtable(tab.results, caption = "Cos2 pour l'ensemble des facteurs")
+print(Latex, file="AFCtab_cos2_col.tex", tabular.environment = "longtable")
