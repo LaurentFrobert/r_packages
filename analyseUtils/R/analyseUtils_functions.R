@@ -5,6 +5,37 @@ parsecsv <- function(file,header=TRUE,sep='\t',encoding="UTF-8") {
 	return (jsonlite::toJSON(tableau))
 }
 
+chi2 -< function(data) {
+	
+	library(FactoMineR)
+	library(RSVGTipsDevice)
+	library(ggplot2)
+
+	require(jsonlite)
+	tableau <- jsonlite::fromJSON(data)
+
+
+	namestbl<- gsub("([.]|[X]|[,])", "\ ", names(tableau))
+	names(tableau)<-namestbl
+	AFC<-tableau
+	AFC<-apply(AFC, 2, function(x) ifelse(is.na(x), 0, x))
+	AFC<- t(AFC)
+	tbl<-AFC
+	tbl[,margin.table(t(tbl),1)!=0]
+	tbl[margin.table(t(tbl),2)!=0,]
+	AFC<-tbl
+
+	chi2<-chisq.test(AFC)
+	chi2 <- chi2[1:3]
+	phi<-as.numeric(levels(as.factor((chi2[[1]]))))/sum(AFC)
+	chi2<-data.frame(chi2,phi)
+	chi2<-as.list(chi2)
+	nom<-c("Chi Pearson","degrés de liberté","probabilité d'indépendance", "Phi-deux")
+	names(chi2)<-nom
+
+	return (jsonlite::toJSON(chi2))
+
+}
 plot.CA <- function (x, axes = c(1, 2), SeuilCol = NULL, SeuilLigne = NULL, Pem=c(0,0),  tableau, Poids=NULL, 	
     xlim = NULL, ylim = NULL, invisible = NULL, col.row = "blue",
     col.col = "red", col.row.sup = "darkblue", col.col.sup = "darkred",
@@ -233,9 +264,9 @@ plot.CA <- function (x, axes = c(1, 2), SeuilCol = NULL, SeuilLigne = NULL, Pem=
 
 
 afc <- function(data) {
-	library(FactoMineR)
-	library(RSVGTipsDevice)
-	library(ggplot2)
+	require(FactoMineR)
+	require(RSVGTipsDevice)
+	require(ggplot2)
 	
 	require(jsonlite)
 	tableau <- jsonlite::fromJSON(data)
