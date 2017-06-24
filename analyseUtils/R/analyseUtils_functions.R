@@ -5,7 +5,7 @@ parsecsv <- function(file,header=TRUE,sep='\t',encoding="UTF-8") {
 	return (jsonlite::toJSON(tableau))
 }
 
-chi2 -< function(data) {
+chi2 <- function(data) {
 	
 	library(FactoMineR)
 	library(RSVGTipsDevice)
