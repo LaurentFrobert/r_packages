@@ -22,6 +22,25 @@ compute_afc <- function(data) {
 	return (jsonlite::toJSON(AFC))
 }
 
+compute_chi2 <- function(afc) {
+	library(FactoMineR)
+	library(RSVGTipsDevice)
+	library(ggplot2)
+
+	require(jsonlite)
+	AFC <- jsonlite::fromJSON(afc)
+
+
+	chi2<-chisq.test(AFC)
+	chi2 <- chi2[1:3]
+	phi<-as.numeric(levels(as.factor((chi2[[1]]))))/sum(AFC)
+	chi2<-data.frame(chi2,phi)
+	chi2<-as.list(chi2)
+	nom<-c("Chi Pearson","degrés de liberté","probabilité d'indépendance", "Phi-deux")
+	names(chi2)<-nom
+
+	return (jsonlite::toJSON(chi2))
+}
 
 chi2 <- function(data) {
 	
