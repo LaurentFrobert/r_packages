@@ -5,24 +5,6 @@ parsecsv <- function(file,header=TRUE,sep='\t',encoding="UTF-8") {
 	return (jsonlite::toJSON(tableau))
 }
 
-compute_afc <- function(data) {
-	require(jsonlite)
-	tableau <- jsonlite::fromJSON(data)
-	
-	namestbl<- gsub("([.]|[X]|[,])", "\ ", names(tableau))
-	names(tableau)<-namestbl
-	AFC<-tableau
-	AFC<-apply(AFC, 2, function(x) ifelse(is.na(x), 0, x))
-	AFC<- t(AFC)
-	tbl<-AFC
-	tbl[,margin.table(t(tbl),1)!=0]
-	tbl[margin.table(t(tbl),2)!=0,]
-	AFC<-tbl
-	
-	return (jsonlite::toJSON(AFC))
-}
-
-
 chi2 <- function(data) {
 	
 	library(FactoMineR)
