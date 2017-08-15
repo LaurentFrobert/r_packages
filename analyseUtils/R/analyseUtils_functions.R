@@ -299,8 +299,31 @@ plot.CA <- function (x, axes = c(1, 2), SeuilCol = NULL, SeuilLigne = NULL, Pem=
 	
 }
 
+plot_afc <- function(afc) {
+	require(FactoMineR)
+	require(RSVGTipsDevice)
+	require(ggplot2)
+	
+	require(jsonlite)
+	AFC <- jsonlite::fromJSON(afc)
+	
+	AFC.ca <- CA(AFC, ncp=7, graph=FALSE)
+	
+	
+	
+	fileName <- tempfile(fileext=".svg")
+    on.exit(unlink(fileName))
+	
+	devSVGTips(file = fileName, toolTipMode=1, width = 10, height = 8, bg = "white", fg ="black", toolTipFontSize=8, onefile=TRUE)
+	graph <- plot.CA(AFC.ca, axes=c(1,2), SeuilCol=0, SeuilLigne=0, Pem=c(0,0),  AFC, col.row="red", col.col="blue", col.row.sup = "#ec6804", col.col.sup = "#00d1ff", label=c("col", "col.sup", "row", "row.sup"),  title="")
+	print(graph)
+	dev.off()
+	
+	readChar(fileName, file.info(fileName)$size)
+	
+}
 
-afc <- function(data) {
+afc <- function(data) { # deprecated
 	require(FactoMineR)
 	require(RSVGTipsDevice)
 	require(ggplot2)
