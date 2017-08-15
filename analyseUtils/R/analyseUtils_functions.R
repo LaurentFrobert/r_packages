@@ -5,6 +5,26 @@ parsecsv <- function(file,header=TRUE,sep='\t',encoding="UTF-8") {
 	return (jsonlite::toJSON(tableau))
 }
 
+
+matrix_to_json <-function(m) { 
+	require(jsonlite)
+e<-list(colnames=colnames(m), rownames= rownames(m), values=m[])
+return (jsonlite::toJSON(e))
+}
+
+json_to_matrix <- function(j) {
+	require(jsonlite)
+	e <- jsonlite::fromJSON(j)
+	cells <- e$values
+	rnames <- e$rownames
+	cnames <- e$colnames
+	nrow <- length(rnames)
+	ncol <- length(cnames)
+	mymatrix <- matrix(cells, nrow=nrow, ncol=ncol, byrow=FALSE,
+  dimnames=list(rnames, cnames))
+  return (mymatrix)
+}
+
 compute_afc <- function(data) {
 	require(jsonlite)
 	tableau <- jsonlite::fromJSON(data)
@@ -19,7 +39,7 @@ compute_afc <- function(data) {
 	tbl[margin.table(t(tbl),2)!=0,]
 	AFC<-tbl
 	
-	return (jsonlite::toJSON(AFC))
+	return (matrix_to_json(AFC))
 }
 
 compute_chi2 <- function(afc) {
@@ -28,7 +48,9 @@ compute_chi2 <- function(afc) {
 	library(ggplot2)
 
 	require(jsonlite)
-	AFC <- jsonlite::fromJSON(afc)
+	
+	
+	AFC <- json_to_matrix(afc)
 
 
 	chi2<-chisq.test(AFC)
@@ -305,7 +327,8 @@ plot_afc <- function(afc) {
 	require(ggplot2)
 	
 	require(jsonlite)
-	AFC <- jsonlite::fromJSON(afc)
+	#AFC <- jsonlite::fromJSON(afc)
+	AFC <- json_to_matrix(afc)
 	
 	AFC.ca <- CA(AFC, ncp=7, graph=FALSE)
 	
