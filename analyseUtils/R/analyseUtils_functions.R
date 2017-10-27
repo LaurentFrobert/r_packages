@@ -34,24 +34,25 @@ sqlite2df <- function(file) {
 	rownames(data) <- t(data[1]) # first column always the row name
 	data[1] <- NULL
 	dbClearResult(results);
-	return (data) 
+	return data ;
 }
 
 compute_afc_sqlite <- function(data) {
 	
 	tableau <- sqlite2df(data)
 	
-	namestbl<- gsub("([.]|[X]|[,])", "\ ", names(tableau))
-	names(tableau)<-namestbl
-	AFC<-tableau
-	AFC<-apply(AFC, 2, function(x) ifelse(is.na(x), 0, x))
-	AFC<- t(AFC)
-	tbl<-AFC
-	tbl[,margin.table(t(tbl),1)!=0]
-	tbl[margin.table(t(tbl),2)!=0,]
-	AFC<-tbl
+	return matrix_to_json(tableau)
+	#namestbl<- gsub("([.]|[X]|[,])", "\ ", names(tableau))
+	#names(tableau)<-namestbl
+	#AFC<-tableau
+	#AFC<-apply(AFC, 2, function(x) ifelse(is.na(x), 0, x))
+	#AFC<- t(AFC)
+	#tbl<-AFC
+	#tbl[,margin.table(t(tbl),1)!=0]
+	#tbl[margin.table(t(tbl),2)!=0,]
+	#AFC<-tbl
 	
-	return (matrix_to_json(AFC))
+	#return (matrix_to_json(AFC))
 }
 
 compute_afc <- function(data) {
