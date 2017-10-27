@@ -28,11 +28,11 @@ json_to_matrix <- function(j) {
 
 sqlite2df <- function(file) { 
 	require("RSQLite")
-	con = dbConnect(SQLite(),file)	
+	con = dbConnect(SQLite(),dbname = file)	
 	results = dbSendQuery(con, "SELECT * FROM 'table'"); # attention : le nom de la table est : table donc il faut des quotes autour
 	data = fetch(results);
-	rownames(data) <- t(data[0]) # first column always the row name
-	data[0] <- NULL
+	rownames(data) <- t(data[1]) # first column always the row name
+	data[1] <- NULL
 	dbClearResult(results);
 	return (data) 
 }
