@@ -34,14 +34,14 @@ sqlite2df <- function(file) {
 	rownames(data) <- t(data[1]) # first column always the row name
 	data[1] <- NULL
 	dbClearResult(results);
-	return data ;
+	return (data) ;
 }
 
 compute_afc_sqlite <- function(data) {
 	
 	tableau <- sqlite2df(data)
 	
-	return matrix_to_json(tableau)
+	return (matrix_to_json(tableau))
 	#namestbl<- gsub("([.]|[X]|[,])", "\ ", names(tableau))
 	#names(tableau)<-namestbl
 	#AFC<-tableau
