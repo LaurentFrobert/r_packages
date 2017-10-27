@@ -12,6 +12,7 @@ e<-list(colnames=colnames(m), rownames= rownames(m), values=m[])
 return (jsonlite::toJSON(e))
 }
 
+
 json_to_matrix <- function(j) {
 	require(jsonlite)
 	e <- jsonlite::fromJSON(j)
@@ -23,6 +24,34 @@ json_to_matrix <- function(j) {
 	mymatrix <- matrix(cells, nrow=nrow, ncol=ncol, byrow=FALSE,
   dimnames=list(rnames, cnames))
   return (mymatrix)
+}
+
+sqlite2df <- function(file) { 
+	require("RSQLite")
+	con = dbConnect(SQLite(),file)	
+	results = dbSendQuery(con, "SELECT * FROM 'table'"); # attention : le nom de la table est : table donc il faut des quotes autour
+	data = fetch(results);
+	rownames(data) <- t(data[0]) # first column always the row name
+	data[0] <- NULL
+	dbClearResult(results);
+	return (data) 
+}
+
+compute_afc_sqlite <- function(data) {
+	
+	tableau <- sqlite2df(data)
+	
+	namestbl<- gsub("([.]|[X]|[,])", "\ ", names(tableau))
+	names(tableau)<-namestbl
+	AFC<-tableau
+	AFC<-apply(AFC, 2, function(x) ifelse(is.na(x), 0, x))
+	AFC<- t(AFC)
+	tbl<-AFC
+	tbl[,margin.table(t(tbl),1)!=0]
+	tbl[margin.table(t(tbl),2)!=0,]
+	AFC<-tbl
+	
+	return (matrix_to_json(AFC))
 }
 
 compute_afc <- function(data) {

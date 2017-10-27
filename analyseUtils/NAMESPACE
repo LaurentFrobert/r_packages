@@ -2,3 +2,4 @@
 
 export(parsecsv)
 export(afc)
+export(compute_afc_sqlite)
