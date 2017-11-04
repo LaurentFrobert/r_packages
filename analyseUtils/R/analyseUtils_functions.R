@@ -505,7 +505,8 @@ plot_afc2 <- function(afc) {
     on.exit(unlink(fileName))
 	
 	devSVGTips(file = fileName, toolTipMode=1, width = 10, height = 8, bg = "white", fg ="black", toolTipFontSize=8, onefile=TRUE)
-	graph <- Myggplot.CA(AFC.ca, axes=c(1,2), SeuilCol=0, SeuilLigne=0, Pem=c(0,0),  AFC, col.row="red", col.col="blue", col.row.sup = "#ec6804", col.col.sup = "#00d1ff", label=c("col", "col.sup", "row", "row.sup"),  title="")
+	#graph <- Myggplot.CA(AFC.ca, axes=c(1,2), SeuilCol=0, SeuilLigne=0, Pem=c(0,0),  AFC, col.row="red", col.col="blue", col.row.sup = "#ec6804", col.col.sup = "#00d1ff", label=c("col", "col.sup", "row", "row.sup"),  title="")
+	graph <- Myggplot.CA(AFC.ca,xax = 1, yax = 2, label = NULL, SeuilLigne=NULL, SeuilCol=NULL,  SeuilPem=FALSE, alpha = 0.5, LabelSize.row=5, LabelSize.col=7, titre = NULL,  col.row = "darkblue", col.col = "red", col.row.sup = "khaki3", col.col.sup = "DarkSeaGreen4", classification=FALSE, palette = "Set2")
 	print(graph)
 	dev.off()
 	
