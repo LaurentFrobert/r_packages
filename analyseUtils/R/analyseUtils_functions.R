@@ -376,6 +376,143 @@ plot_afc <- function(afc) {
 	
 }
 
+Myggplot.CA <- function(res, xax = 1, yax = 2, label = NULL, SeuilLigne=NULL, SeuilCol=NULL,  SeuilPem=FALSE, alpha = 0.5, LabelSize.row=5, LabelSize.col=7, titre = NULL,  col.row = "darkblue", col.col = "red", col.row.sup = "khaki3", col.col.sup = "DarkSeaGreen4", classification=FALSE, palette = "Set2", ...) {
+
+#	if (!inherits(res, "CA")) stop("Le tableau introduit ne convient pas")
+#	    lab.row <- lab.col <- lab.row.sup <- lab.col.sup <- FALSE
+
+
+	if(!is.null(SeuilLigne) & is.null(SeuilCol)){
+		    mCol <- 0
+		    mrow <-SeuilLigne
+	}
+	else if(!is.null(SeuilCol) & is.null(SeuilLigne)){
+		     mCol <-SeuilCol
+		     mrow <- 0
+	}
+	else if(!is.null(SeuilLigne) & !is.null(SeuilCol)){
+		    mCol  <- SeuilCol
+		    mrow  <- SeuilLigne
+	}
+	else{
+		    mrow <- 0
+		    mCol <- 0
+	}
+
+
+	# Si il y a une classification
+
+	if(classification==TRUE){
+
+		tab.coord.col<-data.frame(x=res[[2]]$x, y=res[[2]]$y, row.names=rownames(res[[2]]))
+		tab.coord.row<-data.frame(x=res[[1]]$x, y=res[[1]]$y, row.names=rownames(res[[1]]))
+
+	    	tab.contrib.row <-as.matrix(data.frame(res[[1]][, 6],res[[1]][, 7]))
+	    	tab.contrib.col <-as.matrix(data.frame(res[[2]][, 6],res[[2]][, 7]))
+		eigOfF1<-round(res[[3]][1], 3) 
+		eigOfF2<-round(res[[3]][2], 3)
+		coord.col <- subset(tab.coord.col, tab.contrib.col[, 1] > mCol | tab.contrib.col[, 2] > mCol)
+	    	coord.row <- subset(tab.coord.row, tab.contrib.row[, 1] > mrow | tab.contrib.row[, 2] > mrow)
+		col.a<-subset(res[[1]], tab.contrib.row[, 1] > mrow | tab.contrib.row[, 2] > mrow)
+		col.b<-subset(res[[2]], tab.contrib.col[, 1] > mCol | tab.contrib.col[, 2] > mCol)
+		col.row<-as.vector(col.b[,5])
+		col.col<-as.vector(col.a[,5])
+		print(col.col)
+		print(col.row)
+#		col.col<-as.vector(col.row[,4])		
+
+
+	}
+	else{
+		tab.coord.row <- data.frame(x = res$row$coord[, xax], y = res$row$coord[, yax])
+		tab.coord.col <- data.frame(x = res$col$coord[, xax], y = res$col$coord[, yax])
+		tab.contrib.col <-res$col$contrib
+	    	tab.contrib.row <-res$row$contrib
+		eigOfF1<-round(res$eig[xax, 2],3)
+		eigOfF2<-round(res$eig[yax, 2],3)
+		coord.col <- subset(tab.coord.col, tab.contrib.col[, 1] > mCol | tab.contrib.col[, 2] > mCol)
+	    	coord.row <- subset(tab.coord.row, tab.contrib.row[, 1] > mrow | tab.contrib.row[, 2] > mrow)
+	}
+
+
+
+	NameOfRows<-data.frame(coord.row,name=rownames(coord.row))
+	NameOfCols<-data.frame(coord.col,name=rownames(coord.col))
+
+	g <- ggplot(data = coord.row, aes_string(x = "x", y = "y"), fill=condition) + 
+		geom_vline(xintercept = 0, col="black") +
+		geom_hline(yintercept = 0, col="black") +
+		scale_x_continuous(paste0("Facteur"," ", xax, "(",eigOfF1,"% )")) +
+		scale_y_continuous(paste0("Facteur"," ", yax, "(",eigOfF2 ,"% )")) + 
+		geom_point(alpha=0.3, col=col.col) +
+		geom_text(data=NameOfRows, aes(x,y, label=name),  hjust=0.1, vjust=-0.6, size=LabelSize.col, col=col.col) 
+	g <- g + labs(title=titre)
+	g <- g + geom_point(data=coord.col, size=1, shape=6) +
+		geom_text(data=NameOfCols, aes(x,y, label=name), col=col.row, hjust=0.25, vjust=-0.7, size=LabelSize.row) 
+
+
+	if (!is.null(res$row.sup$coord)){
+	coord.row.sup <- data.frame(x=res$row.sup$coord[, xax], y=res$row.sup$coord[, yax])
+	NameOfRowsSup<-data.frame(coord.row.sup,name=rownames(res$row.sup$coord))
+
+	g <- g + geom_point(data=coord.row.sup, color=col.row.sup, size=1,  shape=25) +
+		geom_text(data=NameOfRowsSup, aes(x,y, label=name),  hjust=0.2, vjust=-0.5, size=LabelSize.row+1.5, col=col.row.sup)  
+	} 
+	if (!is.null(res$col.sup$coord)){
+
+	coord.col.sup <- data.frame(x=res$col.sup$coord[, xax], y=res$col.sup$coord[, yax])
+	NameOfColsSup<-data.frame(coord.col.sup,name=rownames(res$col.sup$coord))
+	LabelSize.col<-LabelSize.col+1
+	g <- g + geom_point(data=coord.col.sup, color=col.col.sup, size=0.85, shape=25) +
+		geom_text(data=NameOfColsSup, aes(x,y, label=name),  hjust=0.2, vjust=-0.5, size=LabelSize.col, col=col.col.sup)  
+	} 
+	g + coord_fixed(ratio=6)
+
+	if(SeuilPem==TRUE){
+	g <- g + theme_bw(base_size = 16)
+	g <- g + theme(panel.border = element_rect(size=1.5,colour = "darkgray"), panel.grid.minor = element_line(colour = "gray", linetype = "dashed"))
+	}
+	else{
+	g <- g + theme_bw(base_size = 16)
+	g <- g + theme(panel.border = element_rect(size=1.5,colour = "darkgray"), panel.grid.minor = element_line(colour = "gray", linetype = "dashed"))
+
+	}
+	g <- g + theme(plot.title = element_text(size=12))
+	g <- g + theme(axis.text = element_text(size = 10)) # change les textes des axes
+	g <- g + theme(axis.title = element_text(size = 14)) # change les titres des axes
+
+
+	return(g)
+ 
+}
+
+
+
+plot_afc2 <- function(afc) {
+	require(FactoMineR)
+	require(RSVGTipsDevice)
+	require(ggplot2)
+	
+	require(jsonlite)
+	#AFC <- jsonlite::fromJSON(afc)
+	AFC <- json_to_matrix(afc)
+	
+	AFC.ca <- CA(AFC, ncp=7, graph=FALSE)
+	
+	
+	
+	fileName <- tempfile(fileext=".svg")
+    on.exit(unlink(fileName))
+	
+	devSVGTips(file = fileName, toolTipMode=1, width = 10, height = 8, bg = "white", fg ="black", toolTipFontSize=8, onefile=TRUE)
+	graph <- Myggplot.CA(AFC.ca, axes=c(1,2), SeuilCol=0, SeuilLigne=0, Pem=c(0,0),  AFC, col.row="red", col.col="blue", col.row.sup = "#ec6804", col.col.sup = "#00d1ff", label=c("col", "col.sup", "row", "row.sup"),  title="")
+	print(graph)
+	dev.off()
+	
+	readChar(fileName, file.info(fileName)$size)
+	
+}
+
 afc <- function(data) { # deprecated
 	require(FactoMineR)
 	require(RSVGTipsDevice)
